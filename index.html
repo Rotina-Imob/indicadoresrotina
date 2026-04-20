@@ -192,32 +192,32 @@
   }
 
   /* ── MODAL SENHA ── */
-  #senha-modal {{
-    position: fixed; inset: 0; z-index: 300; display: none; align-items: center;
-    justify-content: center; padding: 24px; background: rgba(0,0,0,0.45);
-  }}
-  #senha-modal.open {{ display: flex; }}
-  .senha-panel {{
+  #senha-modal {
+    position: fixed; inset: 0; z-index: 500; display: none; align-items: center;
+    justify-content: center; padding: 24px; background: rgba(0,0,0,0.5);
+  }
+  #senha-modal.open { display: flex; }
+  .senha-panel {
     background: var(--white); border: 1px solid var(--border); border-radius: var(--radius);
-    width: 100%; max-width: 440px; box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    width: 100%; max-width: 440px; box-shadow: 0 20px 60px rgba(0,0,0,0.25);
     animation: fadeUp .3s ease both; overflow: hidden;
-  }}
-  .senha-header {{
+  }
+  .senha-header {
     background: var(--red); padding: 20px 28px;
     display: flex; align-items: center; justify-content: space-between;
-  }}
-  .senha-title {{ font-family: 'Montserrat',sans-serif; font-size: 16px; font-weight: 800; color: #fff; }}
-  .senha-body {{ padding: 24px 28px 28px; }}
-  .senha-field {{ margin-bottom: 16px; }}
-  .senha-field label {{ display: block; font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-bottom: 7px; }}
-  .senha-field input {{ width: 100%; background: var(--white); border: 1.5px solid var(--border); border-radius: var(--radius); padding: 11px 13px; color: var(--text); font-family: 'Open Sans',sans-serif; font-size: 14px; outline: none; transition: border-color .2s; }}
-  .senha-field input:focus {{ border-color: var(--red); box-shadow: 0 0 0 3px rgba(200,16,46,0.08); }}
-  .senha-field input::placeholder {{ color: var(--muted2); }}
-  .senha-actions {{ display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }}
-  .btn-salvar-senha {{ background: var(--red); border: none; border-radius: var(--radius); padding: 10px 22px; color: #fff; font-family: 'Montserrat',sans-serif; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; cursor: pointer; transition: background .2s; min-width: 120px; display: flex; align-items: center; justify-content: center; }}
-  .btn-salvar-senha:hover {{ background: var(--red-dark); }}
-  .btn-salvar-senha:disabled {{ opacity: .45; cursor: not-allowed; }}
-  .senha-error {{ background: #fff5f6; border: 1px solid rgba(200,16,46,0.25); border-left: 3px solid var(--red); border-radius: var(--radius); padding: 10px 13px; font-size: 12px; color: var(--red-dark); margin-bottom: 16px; display: none; }}
+  }
+  .senha-title { font-family: 'Montserrat',sans-serif; font-size: 16px; font-weight: 800; color: #fff; }
+  .senha-body { padding: 24px 28px 28px; }
+  .senha-field { margin-bottom: 16px; }
+  .senha-field label { display: block; font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-bottom: 7px; }
+  .senha-field input { width: 100%; background: var(--white); border: 1.5px solid var(--border); border-radius: var(--radius); padding: 11px 13px; color: var(--text); font-family: 'Open Sans',sans-serif; font-size: 14px; outline: none; transition: border-color .2s; }
+  .senha-field input:focus { border-color: var(--red); box-shadow: 0 0 0 3px rgba(200,16,46,0.08); }
+  .senha-field input::placeholder { color: var(--muted2); }
+  .senha-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+  .btn-salvar-senha { background: var(--red); border: none; border-radius: var(--radius); padding: 10px 22px; color: #fff; font-family: 'Montserrat',sans-serif; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; cursor: pointer; transition: background .2s; min-width: 120px; display: flex; align-items: center; justify-content: center; }
+  .btn-salvar-senha:hover { background: var(--red-dark); }
+  .btn-salvar-senha:disabled { opacity: .45; cursor: not-allowed; }
+  .senha-error { background: #fff5f6; border: 1px solid rgba(200,16,46,0.25); border-left: 3px solid var(--red); border-radius: var(--radius); padding: 10px 13px; font-size: 12px; color: var(--red-dark); margin-bottom: 16px; display: none; }
 
 </style>
 </head>
@@ -259,7 +259,7 @@
         <strong id="user-email-display">—</strong>
         Acesso autorizado
       </div>
-      <button class="btn-header" onclick="abrirSenha()">🔑 Senha</button>
+      <button class="btn-header" id="btn-senha" onclick="abrirSenha()">🔑 Senha</button>
       <button class="btn-admin" id="btn-admin" onclick="abrirAdmin()">⚙ Gerenciar</button>
       <button class="btn-header" onclick="handleLogout()">Sair</button>
     </div>
@@ -735,8 +735,10 @@
     document.body.style.overflow = '';
   }
 
-  document.getElementById('senha-modal').addEventListener('click', function(e) {
-    if (e.target === this) fecharSenha();
+  document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('senha-modal').addEventListener('click', function(e) {
+      if (e.target === this) fecharSenha();
+    });
   });
 
   async function salvarSenha() {
@@ -744,9 +746,7 @@
     const confirma = document.getElementById('confirmar-senha').value;
     const btn      = document.getElementById('btn-salvar-senha');
     const errEl    = document.getElementById('senha-error');
-
     errEl.style.display = 'none';
-
     if (!nova || !confirma) {
       errEl.textContent = 'Preencha todos os campos.';
       errEl.style.display = 'block'; return;
@@ -759,20 +759,15 @@
       errEl.textContent = 'As senhas não coincidem.';
       errEl.style.display = 'block'; return;
     }
-
     btn.disabled = true;
     btn.innerHTML = '<span class="spinner-sm"></span>';
-
     const { error } = await sb.auth.updateUser({ password: nova });
-
     btn.disabled = false;
     btn.innerHTML = 'Salvar Senha';
-
     if (error) {
-      errEl.textContent = 'Erro ao alterar senha: ' + error.message;
+      errEl.textContent = 'Erro: ' + error.message;
       errEl.style.display = 'block'; return;
     }
-
     fecharSenha();
     showToast('Senha alterada com sucesso!', 'success');
   }
