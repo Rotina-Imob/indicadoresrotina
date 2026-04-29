@@ -365,7 +365,7 @@
         <div class="admin-subtitle">Gerencie painéis e usuários do portal</div>
       </div>
       <div style="display:flex;align-items:center;gap:12px;">
-        <span style="font-size:10px;color:rgba(255,255,255,0.5);letter-spacing:.08em;">v2026.04.29 13:50</span>
+        <span style="font-size:10px;color:rgba(255,255,255,0.5);letter-spacing:.08em;">v2026.04.29 14:10</span>
         <button class="btn-close" onclick="fecharAdmin()">✕</button>
       </div>
     </div>
@@ -423,7 +423,11 @@
   const SUPABASE_KEY  = 'sb_publishable_NSsS3fo-rI31AmhLAzDvaA_kVBvuGq-';
   const ADMIN_EMAIL   = 'coimbra@rotina.com.br';
   const STORAGE_BASE  = 'https://rotina-imob.github.io/indicadoresrotina';
-  const EDGE_FUNC_URL = 'https://cugvsljfywcilchibzin.supabase.co/functions/v1/manage-users';
+  const EDGE_FUNC_URL  = 'https://cugvsljfywcilchibzin.supabase.co/functions/v1/manage-users';
+  let GITHUB_DATA_TOKEN = null; // carregado do Supabase após login
+  const GITHUB_DATA_OWNER = 'Rotina-Imob';
+  const GITHUB_DATA_REPO  = 'rotina-imob-data';
+  const GITHUB_DATA_BRANCH = 'main';
 
   const { createClient } = supabase;
   const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -473,6 +477,9 @@
     document.getElementById('user-email-display').textContent = user.email;
     if (user.email === ADMIN_EMAIL) {
       document.getElementById('btn-admin').style.display = 'inline-flex';
+      // Busca token de dados do Supabase (só admin)
+      const { data: cfg } = await sb.from('config').select('valor').eq('chave', 'github_data_token').single();
+      if (cfg) GITHUB_DATA_TOKEN = cfg.valor;
     }
     await carregarDashboards();
   }
@@ -892,31 +899,79 @@
       : `${prontos} de ${total} arquivo${total>1?'s':''} selecionado${prontos!==1?'s':''}`;
   }
 
+  async function fileToB64(file) {
+    const arrayBuffer = await file.arrayBuffer();
+    const uint8 = new Uint8Array(arrayBuffer);
+    let b64 = '';
+    const chunkSize = 8192;
+    for (let i = 0; i < uint8.length; i += chunkSize) {
+      b64 += String.fromCharCode(...uint8.subarray(i, i + chunkSize));
+    }
+    return btoa(b64);
+  }
+
+  async function deletarArquivosAntigos(pasta) {
+    const ghHeaders = {
+      'Authorization': `Bearer ${GITHUB_DATA_TOKEN}`,
+      'Accept': 'application/vnd.github+json',
+      'Content-Type': 'application/json',
+      'X-GitHub-Api-Version': '2022-11-28'
+    };
+    const listRes = await fetch(
+      `https://api.github.com/repos/${GITHUB_DATA_OWNER}/${GITHUB_DATA_REPO}/contents/${pasta}`,
+      { headers: ghHeaders }
+    );
+    if (!listRes.ok) return;
+    const files = await listRes.json();
+    for (const file of files) {
+      if (file.name === '.gitkeep') continue;
+      await fetch(
+        `https://api.github.com/repos/${GITHUB_DATA_OWNER}/${GITHUB_DATA_REPO}/contents/${pasta}/${file.name}`,
+        { method: 'DELETE', headers: ghHeaders, body: JSON.stringify({ message: `Remove ${file.name}`, sha: file.sha, branch: GITHUB_DATA_BRANCH }) }
+      );
+    }
+  }
+
+  async function uploadParaGitHub(pasta, filename, file) {
+    const ghHeaders = {
+      'Authorization': `Bearer ${GITHUB_DATA_TOKEN}`,
+      'Accept': 'application/vnd.github+json',
+      'Content-Type': 'application/json',
+      'X-GitHub-Api-Version': '2022-11-28'
+    };
+    const b64 = await fileToB64(file);
+    const apiUrl = `https://api.github.com/repos/${GITHUB_DATA_OWNER}/${GITHUB_DATA_REPO}/contents/${pasta}/${filename}`;
+    let sha = undefined;
+    const getRes = await fetch(apiUrl, { headers: ghHeaders });
+    if (getRes.ok) { const existing = await getRes.json(); sha = existing.sha; }
+    const putBody = { message: `Upload ${filename}`, content: b64, branch: GITHUB_DATA_BRANCH };
+    if (sha) putBody.sha = sha;
+    const putRes = await fetch(apiUrl, { method: 'PUT', headers: ghHeaders, body: JSON.stringify(putBody) });
+    if (!putRes.ok) { const err = await putRes.json(); throw new Error(err.message || 'Falha no upload'); }
+  }
+
   async function enviarDadosDash(dashId) {
-    const arquivos = dadosArquivosCache.filter(a => a.dashboard_id === dashId);
-    const files = dadosFilesMap[dashId] || {};
-    const btn   = document.getElementById(`btn-dados-${dashId}`);
-    const resEl = document.getElementById(`dados-resultado-${dashId}`);
-    btn.disabled = true; btn.innerHTML = '<span class="spinner-sm"></span>';
+    const arquivos = dadosArquivosCache.filter(a => Number(a.dashboard_id) === Number(dashId));
+    const files    = dadosFilesMap[dashId] || {};
+    const btn      = document.getElementById(`btn-dados-${dashId}`);
+    const resEl    = document.getElementById(`dados-resultado-${dashId}`);
+    btn.disabled = true; btn.innerHTML = '<span class="spinner-sm"></span> Enviando...';
     resEl.classList.remove('show');
     const resultados = []; let erro = false;
+
+    // Deleta arquivos antigos
+    const pasta = files[arquivos[0].id]?.pasta;
+    try { await deletarArquivosAntigos(pasta); } catch(e) { /* ignora */ }
+
+    // Envia cada arquivo diretamente para o GitHub
     for (const arq of arquivos) {
-      const { file, pasta } = files[arq.id];
+      const { file } = files[arq.id];
       try {
-        // Lê arquivo e converte para base64 em chunks (evita stack overflow)
-        const arrayBuffer = await file.arrayBuffer();
-        const uint8 = new Uint8Array(arrayBuffer);
-        let b64 = '';
-        const chunkSize = 8192;
-        for (let i = 0; i < uint8.length; i += chunkSize) {
-          b64 += String.fromCharCode(...uint8.subarray(i, i + chunkSize));
-        }
-        b64 = btoa(b64);
-        const result = await chamadaEdgeFunction({ action:'upload_data', pasta, filename:file.name, content:b64, compressed:false });
-        if (result.error) throw new Error(result.error);
+        await uploadParaGitHub(pasta, file.name, file);
         resultados.push(`✓ ${file.name} — ${new Date().toLocaleString('pt-BR')}`);
       } catch(e) { resultados.push(`✕ ${file.name} — ${e.message}`); erro = true; }
     }
+
     btn.disabled = false; btn.innerHTML = '📤 Enviar';
     resEl.innerHTML = resultados.join('<br>');
     resEl.style.background = erro ? 'rgba(200,16,46,0.07)' : 'rgba(46,125,50,0.07)';
