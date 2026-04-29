@@ -365,7 +365,7 @@
         <div class="admin-subtitle">Gerencie painéis e usuários do portal</div>
       </div>
       <div style="display:flex;align-items:center;gap:12px;">
-        <span style="font-size:10px;color:rgba(255,255,255,0.5);letter-spacing:.08em;">v2026.04.29 12:56</span>
+        <span style="font-size:10px;color:rgba(255,255,255,0.5);letter-spacing:.08em;">v2026.04.29 13:10</span>
         <button class="btn-close" onclick="fecharAdmin()">✕</button>
       </div>
     </div>
@@ -429,6 +429,7 @@
   const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
 
   let dashboardsCache = [];
+  let dadosArquivosCache = [];
   let currentUser = null;
   let filesCache = {};  // id -> File object
 
@@ -476,8 +477,6 @@
     await carregarDashboards();
   }
 
-  let dadosArquivosCache = [];
-
   async function carregarDashboards() {
     const { data, error } = await sb.from('dashboards').select('*').eq('ativo', true).order('ordem', { ascending: true });
     if (error || !data) {
@@ -486,7 +485,6 @@
     }
     dashboardsCache = data;
     renderDashboards(data);
-    // Carrega arquivos de dados em background
     const { data: arqs } = await sb.from('dashboard_arquivos').select('*').order('ordem', { ascending: true });
     if (arqs) dadosArquivosCache = arqs;
   }
@@ -529,7 +527,6 @@
 
   // ── ADMIN ──
   async function abrirAdmin() {
-    // Garante que os arquivos de dados estão carregados antes de abrir
     if (dadosArquivosCache.length === 0) {
       const { data: arqs } = await sb.from('dashboard_arquivos').select('*').order('ordem', { ascending: true });
       if (arqs) dadosArquivosCache = arqs;
@@ -820,10 +817,8 @@
   const dadosFilesMap = {};
 
   function toggleDados(dashId) {
-    const body   = document.getElementById('dados-body-' + dashId);
-    const toggle = document.getElementById('toggle-dados-' + dashId);
-    body.classList.toggle('open');
-    toggle.classList.toggle('open');
+    document.getElementById('dados-body-' + dashId).classList.toggle('open');
+    document.getElementById('toggle-dados-' + dashId).classList.toggle('open');
   }
 
   function handleDadoFile(event, dashId, arquivoId, prefixo, pasta) {
@@ -832,33 +827,25 @@
     const uploadEl = document.getElementById(`dado-upload-${dashId}-${arquivoId}`);
     const fnameEl  = document.getElementById(`dado-fname-${dashId}-${arquivoId}`);
     const statusEl = document.getElementById(`dado-status-${dashId}-${arquivoId}`);
-
     if (!file.name.endsWith('.csv')) {
       uploadEl.className = 'dado-row-upload invalid';
       fnameEl.textContent = '✕ Arquivo deve ser .csv';
-      statusEl.className = 'dado-row-status erro';
-      statusEl.textContent = 'Inválido';
+      statusEl.className = 'dado-row-status erro'; statusEl.textContent = 'Inválido';
       if (!dadosFilesMap[dashId]) dadosFilesMap[dashId] = {};
-      dadosFilesMap[dashId][arquivoId] = null;
-      atualizarBotaoDados(dashId);
-      return;
+      dadosFilesMap[dashId][arquivoId] = null; atualizarBotaoDados(dashId); return;
     }
-
     let valido = file.name.startsWith(prefixo);
     if (prefixo === 'tb_mov_inq_' && file.name.startsWith('tb_mov_inq_detalhe_')) valido = false;
-
     if (!valido) {
       uploadEl.className = 'dado-row-upload invalid';
       fnameEl.textContent = `✕ ${file.name} — prefixo incorreto`;
-      statusEl.className = 'dado-row-status erro';
-      statusEl.textContent = 'Inválido';
+      statusEl.className = 'dado-row-status erro'; statusEl.textContent = 'Inválido';
       if (!dadosFilesMap[dashId]) dadosFilesMap[dashId] = {};
       dadosFilesMap[dashId][arquivoId] = null;
     } else {
       uploadEl.className = 'dado-row-upload valid';
       fnameEl.textContent = `✓ ${file.name}`;
-      statusEl.className = 'dado-row-status ok';
-      statusEl.textContent = 'Pronto';
+      statusEl.className = 'dado-row-status ok'; statusEl.textContent = 'Pronto';
       if (!dadosFilesMap[dashId]) dadosFilesMap[dashId] = {};
       dadosFilesMap[dashId][arquivoId] = { file, pasta };
     }
@@ -867,56 +854,38 @@
 
   function atualizarBotaoDados(dashId) {
     const arquivos = dadosArquivosCache.filter(a => a.dashboard_id === dashId);
-    const files    = dadosFilesMap[dashId] || {};
-    const prontos  = arquivos.filter(a => files[a.id]).length;
-    const total    = arquivos.length;
-    const btn  = document.getElementById(`btn-dados-${dashId}`);
-    const info = document.getElementById(`dados-info-${dashId}`);
-    btn.disabled = prontos < total;
-    info.textContent = prontos === total
+    const files = dadosFilesMap[dashId] || {};
+    const prontos = arquivos.filter(a => files[a.id]).length;
+    const total = arquivos.length;
+    document.getElementById(`btn-dados-${dashId}`).disabled = prontos < total;
+    document.getElementById(`dados-info-${dashId}`).textContent = prontos === total
       ? `${total} arquivo${total>1?'s':''} prontos para envio`
       : `${prontos} de ${total} arquivo${total>1?'s':''} selecionado${prontos!==1?'s':''}`;
   }
 
   async function enviarDadosDash(dashId) {
     const arquivos = dadosArquivosCache.filter(a => a.dashboard_id === dashId);
-    const files    = dadosFilesMap[dashId] || {};
-    const btn      = document.getElementById(`btn-dados-${dashId}`);
-    const resEl    = document.getElementById(`dados-resultado-${dashId}`);
-
-    btn.disabled = true;
-    btn.innerHTML = '<span class="spinner-sm"></span>';
+    const files = dadosFilesMap[dashId] || {};
+    const btn   = document.getElementById(`btn-dados-${dashId}`);
+    const resEl = document.getElementById(`dados-resultado-${dashId}`);
+    btn.disabled = true; btn.innerHTML = '<span class="spinner-sm"></span>';
     resEl.classList.remove('show');
-
-    const resultados = [];
-    let erro = false;
-
+    const resultados = []; let erro = false;
     for (const arq of arquivos) {
       const { file, pasta } = files[arq.id];
       try {
-        const b64 = await new Promise((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onload = () => resolve(reader.result.split(',')[1]);
-          reader.onerror = reject;
-          reader.readAsDataURL(file);
-        });
+        const b64 = await new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result.split(',')[1]); r.onerror = rej; r.readAsDataURL(file); });
         const result = await chamadaEdgeFunction({ action:'upload_data', pasta, filename:file.name, content:b64 });
         if (result.error) throw new Error(result.error);
         resultados.push(`✓ ${file.name} — ${new Date().toLocaleString('pt-BR')}`);
-      } catch(e) {
-        resultados.push(`✕ ${file.name} — ${e.message}`);
-        erro = true;
-      }
+      } catch(e) { resultados.push(`✕ ${file.name} — ${e.message}`); erro = true; }
     }
-
-    btn.disabled = false;
-    btn.innerHTML = '📤 Enviar';
+    btn.disabled = false; btn.innerHTML = '📤 Enviar';
     resEl.innerHTML = resultados.join('<br>');
     resEl.style.background = erro ? 'rgba(200,16,46,0.07)' : 'rgba(46,125,50,0.07)';
-    resEl.style.border     = erro ? '1px solid rgba(200,16,46,0.2)' : '1px solid rgba(46,125,50,0.2)';
-    resEl.style.color      = erro ? 'var(--red)' : 'var(--success)';
+    resEl.style.border = erro ? '1px solid rgba(200,16,46,0.2)' : '1px solid rgba(46,125,50,0.2)';
+    resEl.style.color = erro ? 'var(--red)' : 'var(--success)';
     resEl.classList.add('show');
-
     if (!erro) {
       showToast('Dados enviados com sucesso!', 'success');
       arquivos.forEach(a => {
@@ -927,9 +896,7 @@
         document.getElementById(`dado-status-${dashId}-${a.id}`).textContent = 'Aguardando';
       });
       atualizarBotaoDados(dashId);
-    } else {
-      showToast('Erro ao enviar um ou mais arquivos.', 'error');
-    }
+    } else { showToast('Erro ao enviar um ou mais arquivos.', 'error'); }
   }
 
   // ── TOAST ──
