@@ -365,7 +365,7 @@
         <div class="admin-subtitle">Gerencie painéis e usuários do portal</div>
       </div>
       <div style="display:flex;align-items:center;gap:12px;">
-        <span style="font-size:10px;color:rgba(255,255,255,0.5);letter-spacing:.08em;">v2026.04.29 13:30</span>
+        <span style="font-size:10px;color:rgba(255,255,255,0.5);letter-spacing:.08em;">v2026.04.29 13:40</span>
         <button class="btn-close" onclick="fecharAdmin()">✕</button>
       </div>
     </div>
@@ -903,8 +903,16 @@
     for (const arq of arquivos) {
       const { file, pasta } = files[arq.id];
       try {
-        const b64 = await new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result.split(',')[1]); r.onerror = rej; r.readAsDataURL(file); });
-        const result = await chamadaEdgeFunction({ action:'upload_data', pasta, filename:file.name, content:b64 });
+        // Lê e comprime o arquivo antes de enviar
+        const arrayBuffer = await file.arrayBuffer();
+        const compressed = await new Promise((res, rej) => {
+          const stream = new Response(
+            new Blob([arrayBuffer]).stream().pipeThrough(new CompressionStream('gzip'))
+          ).arrayBuffer();
+          stream.then(res).catch(rej);
+        });
+        const b64 = btoa(String.fromCharCode(...new Uint8Array(compressed)));
+        const result = await chamadaEdgeFunction({ action:'upload_data', pasta, filename:file.name, content:b64, compressed:true });
         if (result.error) throw new Error(result.error);
         resultados.push(`✓ ${file.name} — ${new Date().toLocaleString('pt-BR')}`);
       } catch(e) { resultados.push(`✕ ${file.name} — ${e.message}`); erro = true; }
