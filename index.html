@@ -365,7 +365,7 @@
         <div class="admin-subtitle">Gerencie painéis e usuários do portal</div>
       </div>
       <div style="display:flex;align-items:center;gap:12px;">
-        <span style="font-size:10px;color:rgba(255,255,255,0.5);letter-spacing:.08em;">v2026.04.29 14:25</span>
+        <span style="font-size:10px;color:rgba(255,255,255,0.5);letter-spacing:.08em;">v2026.04.29 14:40</span>
         <button class="btn-close" onclick="fecharAdmin()">✕</button>
       </div>
     </div>
@@ -428,6 +428,10 @@
   const GITHUB_DATA_OWNER = 'Rotina-Imob';
   const GITHUB_DATA_REPO  = 'rotina-imob-data';
   const GITHUB_DATA_BRANCH = 'main';
+  const PROJETOS_CLAUDE = {
+    'inadimplencia-rotina': 'https://claude.ai/project/019d4af3-b193-7040-8244-1de7df26d94c',
+    'inadimplencia-alugar': 'https://claude.ai/project/019d6ac3-9cad-73f4-9624-de2735883908',
+  };
 
   const { createClient } = supabase;
   const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
