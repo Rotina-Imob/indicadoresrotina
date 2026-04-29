@@ -219,6 +219,36 @@
   .btn-salvar-senha:disabled { opacity: .45; cursor: not-allowed; }
   .senha-error { background: #fff5f6; border: 1px solid rgba(200,16,46,0.25); border-left: 3px solid var(--red); border-radius: var(--radius); padding: 10px 13px; font-size: 12px; color: var(--red-dark); margin-bottom: 16px; display: none; }
 
+
+  /* ── DADOS DO PAINEL ── */
+  .dash-data-section { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); }
+  .dash-data-toggle { display: flex; align-items: center; gap: 8px; cursor: pointer; font-family: 'Montserrat',sans-serif; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); transition: color .2s; background: none; border: none; padding: 0; width: 100%; text-align: left; }
+  .dash-data-toggle:hover { color: var(--red); }
+  .dash-data-toggle .toggle-icon { transition: transform .2s; font-style: normal; }
+  .dash-data-toggle.open .toggle-icon { transform: rotate(90deg); }
+  .dash-data-body { display: none; margin-top: 14px; }
+  .dash-data-body.open { display: block; }
+  .dado-row { margin-bottom: 12px; }
+  .dado-row-label { font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; display: flex; align-items: center; justify-content: space-between; }
+  .dado-row-status { font-size: 10px; font-weight: 700; padding: 1px 7px; border-radius: 3px; letter-spacing: .05em; }
+  .dado-row-status.ok { background: rgba(46,125,50,0.1); color: var(--success); }
+  .dado-row-status.erro { background: rgba(200,16,46,0.1); color: var(--red); }
+  .dado-row-status.vazio { background: #f5f5f5; color: var(--muted2); }
+  .dado-row-upload { border: 1.5px dashed var(--border); border-radius: var(--radius); padding: 10px 14px; display: flex; align-items: center; gap: 10px; cursor: pointer; transition: all .2s; position: relative; font-size: 12px; color: var(--muted); }
+  .dado-row-upload:hover { border-color: var(--red); color: var(--red); }
+  .dado-row-upload.valid { border-color: var(--success); color: var(--success); background: rgba(46,125,50,0.04); }
+  .dado-row-upload.invalid { border-color: var(--red); color: var(--red); background: rgba(200,16,46,0.04); }
+  .dado-row-upload input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+  .dado-row-upload-icon { font-size: 16px; flex-shrink: 0; }
+  .dado-row-upload-text { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .dados-send-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--border); }
+  .dados-send-info { font-size: 11px; color: var(--muted2); }
+  .btn-enviar-dados { background: var(--red); border: none; border-radius: var(--radius); padding: 9px 18px; color: #fff; font-family: 'Montserrat',sans-serif; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; cursor: pointer; transition: background .2s; display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+  .btn-enviar-dados:hover { background: var(--red-dark); }
+  .btn-enviar-dados:disabled { opacity: .4; cursor: not-allowed; }
+  .dados-resultado { background: rgba(46,125,50,0.07); border: 1px solid rgba(46,125,50,0.2); border-radius: var(--radius); padding: 10px 14px; margin-top: 10px; display: none; font-size: 11px; color: var(--success); }
+  .dados-resultado.show { display: block; }
+
 </style>
 </head>
 <body>
@@ -443,6 +473,8 @@
     await carregarDashboards();
   }
 
+  let dadosArquivosCache = [];
+
   async function carregarDashboards() {
     const { data, error } = await sb.from('dashboards').select('*').eq('ativo', true).order('ordem', { ascending: true });
     if (error || !data) {
@@ -451,6 +483,9 @@
     }
     dashboardsCache = data;
     renderDashboards(data);
+    // Carrega arquivos de dados em background
+    const { data: arqs } = await sb.from('dashboard_arquivos').select('*').order('ordem', { ascending: true });
+    if (arqs) dadosArquivosCache = arqs;
   }
 
   function renderDashboards(data) {
@@ -770,6 +805,138 @@
     }
     fecharSenha();
     showToast('Senha alterada com sucesso!', 'success');
+  }
+
+
+  // ── DADOS DO PAINEL ──
+  const dadosFilesMap = {};
+
+  function toggleDados(dashId) {
+    const body   = document.getElementById('dados-body-' + dashId);
+    const toggle = document.getElementById('toggle-dados-' + dashId);
+    body.classList.toggle('open');
+    toggle.classList.toggle('open');
+  }
+
+  function handleDadoFile(event, dashId, arquivoId, prefixo, pasta) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const uploadEl = document.getElementById(`dado-upload-${dashId}-${arquivoId}`);
+    const fnameEl  = document.getElementById(`dado-fname-${dashId}-${arquivoId}`);
+    const statusEl = document.getElementById(`dado-status-${dashId}-${arquivoId}`);
+
+    // Validação: deve ser .csv
+    if (!file.name.endsWith('.csv')) {
+      uploadEl.className = 'dado-row-upload invalid';
+      fnameEl.textContent = '✕ Arquivo deve ser .csv';
+      statusEl.className = 'dado-row-status erro';
+      statusEl.textContent = 'Inválido';
+      if (!dadosFilesMap[dashId]) dadosFilesMap[dashId] = {};
+      dadosFilesMap[dashId][arquivoId] = null;
+      atualizarBotaoDados(dashId);
+      return;
+    }
+
+    // Validação de prefixo (prefixo mais longo tem prioridade)
+    let valido = file.name.startsWith(prefixo);
+    // Se prefixo é tb_mov_inq_ mas arquivo começa com tb_mov_inq_detalhe_, é inválido para resumido
+    if (prefixo === 'tb_mov_inq_' && file.name.startsWith('tb_mov_inq_detalhe_')) {
+      valido = false;
+    }
+
+    if (!valido) {
+      uploadEl.className = 'dado-row-upload invalid';
+      fnameEl.textContent = `✕ ${file.name} — prefixo incorreto`;
+      statusEl.className = 'dado-row-status erro';
+      statusEl.textContent = 'Inválido';
+      if (!dadosFilesMap[dashId]) dadosFilesMap[dashId] = {};
+      dadosFilesMap[dashId][arquivoId] = null;
+    } else {
+      uploadEl.className = 'dado-row-upload valid';
+      fnameEl.textContent = `✓ ${file.name}`;
+      statusEl.className = 'dado-row-status ok';
+      statusEl.textContent = 'Pronto';
+      if (!dadosFilesMap[dashId]) dadosFilesMap[dashId] = {};
+      dadosFilesMap[dashId][arquivoId] = { file, pasta };
+    }
+    atualizarBotaoDados(dashId);
+  }
+
+  function atualizarBotaoDados(dashId) {
+    const arquivos = dadosArquivosCache.filter(a => a.dashboard_id === dashId);
+    const files = dadosFilesMap[dashId] || {};
+    const prontos = arquivos.filter(a => files[a.id]).length;
+    const total = arquivos.length;
+    const btn = document.getElementById(`btn-dados-${dashId}`);
+    const info = document.getElementById(`dados-info-${dashId}`);
+    btn.disabled = prontos < total;
+    info.textContent = prontos === total
+      ? `${total} arquivo${total>1?'s':''} prontos para envio`
+      : `${prontos} de ${total} arquivo${total>1?'s':''} selecionado${prontos!==1?'s':''}`;
+  }
+
+  async function enviarDadosDash(dashId) {
+    const arquivos = dadosArquivosCache.filter(a => a.dashboard_id === dashId);
+    const files = dadosFilesMap[dashId] || {};
+    const btn = document.getElementById(`btn-dados-${dashId}`);
+    const resEl = document.getElementById(`dados-resultado-${dashId}`);
+
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-sm"></span>';
+    resEl.classList.remove('show');
+
+    const resultados = [];
+    let erro = false;
+
+    for (const arq of arquivos) {
+      const { file, pasta } = files[arq.id];
+      try {
+        const b64 = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result.split(',')[1]);
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+
+        const result = await chamadaEdgeFunction({
+          action: 'upload_data',
+          pasta,
+          filename: file.name,
+          content: b64
+        });
+
+        if (result.error) throw new Error(result.error);
+        const agora = new Date().toLocaleString('pt-BR');
+        resultados.push(`✓ ${file.name} — ${agora}`);
+      } catch(e) {
+        resultados.push(`✕ ${file.name} — ${e.message}`);
+        erro = true;
+      }
+    }
+
+    btn.disabled = false;
+    btn.innerHTML = '📤 Enviar';
+
+    resEl.innerHTML = resultados.join('<br>');
+    resEl.style.background = erro ? 'rgba(200,16,46,0.07)' : 'rgba(46,125,50,0.07)';
+    resEl.style.borderColor = erro ? 'rgba(200,16,46,0.2)' : 'rgba(46,125,50,0.2)';
+    resEl.style.color = erro ? 'var(--red)' : 'var(--success)';
+    resEl.classList.add('show');
+
+    if (!erro) {
+      showToast('Dados enviados com sucesso!', 'success');
+      // Limpa seleção
+      arquivos.forEach(a => {
+        dadosFilesMap[dashId][a.id] = null;
+        document.getElementById(`dado-upload-${dashId}-${a.id}`).className = 'dado-row-upload';
+        document.getElementById(`dado-fname-${dashId}-${a.id}`).textContent = 'Clique para selecionar o CSV';
+        document.getElementById(`dado-status-${dashId}-${a.id}`).className = 'dado-row-status vazio';
+        document.getElementById(`dado-status-${dashId}-${a.id}`).textContent = 'Aguardando';
+      });
+      atualizarBotaoDados(dashId);
+    } else {
+      showToast('Erro ao enviar um ou mais arquivos.', 'error');
+    }
   }
 
   // ── TOAST ──
