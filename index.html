@@ -365,7 +365,7 @@
         <div class="admin-subtitle">Gerencie painéis e usuários do portal</div>
       </div>
       <div style="display:flex;align-items:center;gap:12px;">
-        <span style="font-size:10px;color:rgba(255,255,255,0.5);letter-spacing:.08em;">v2026.04.29 13:10</span>
+        <span style="font-size:10px;color:rgba(255,255,255,0.5);letter-spacing:.08em;">v2026.04.29 13:30</span>
         <button class="btn-close" onclick="fecharAdmin()">✕</button>
       </div>
     </div>
@@ -562,12 +562,40 @@
       return;
     }
     list.innerHTML = dashboardsCache.map(d => {
-      // Gera nome de arquivo sugerido a partir do nome do dashboard
       const slug = d.nome.toLowerCase()
         .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
         .replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
       const fileName = `dashboard-${slug}.html`;
       const netlifyUrl = `${STORAGE_BASE}/${fileName}`;
+
+      // Seção de dados do painel
+      const arquivos = dadosArquivosCache.filter(a => Number(a.dashboard_id) === Number(d.id));
+      const dadosHTML = arquivos.length > 0 ? `
+        <div class="dash-data-section">
+          <button class="dash-data-toggle" onclick="toggleDados(${d.id})" id="toggle-dados-${d.id}">
+            <i class="toggle-icon">▶</i>&nbsp; Dados do Painel
+          </button>
+          <div class="dash-data-body" id="dados-body-${d.id}">
+            ${arquivos.map(a => `
+              <div class="dado-row">
+                <div class="dado-row-label">
+                  ${a.label}
+                  <span class="dado-row-status vazio" id="dado-status-${d.id}-${a.id}">Aguardando</span>
+                </div>
+                <div class="dado-row-upload" id="dado-upload-${d.id}-${a.id}">
+                  <input type="file" accept=".csv" onchange="handleDadoFile(event,${d.id},${a.id},'${a.prefixo}','${a.pasta}')">
+                  <span class="dado-row-upload-icon">📎</span>
+                  <span class="dado-row-upload-text" id="dado-fname-${d.id}-${a.id}">Clique para selecionar o CSV</span>
+                </div>
+              </div>
+            `).join('')}
+            <div class="dados-send-bar">
+              <span class="dados-send-info" id="dados-info-${d.id}">Selecione ${arquivos.length} arquivo${arquivos.length>1?'s':''}</span>
+              <button class="btn-enviar-dados" id="btn-dados-${d.id}" onclick="enviarDadosDash(${d.id})" disabled>📤 Enviar</button>
+            </div>
+            <div class="dados-resultado" id="dados-resultado-${d.id}"></div>
+          </div>
+        </div>` : '';
 
       return `
         <div class="admin-dash-item" id="item-${d.id}">
@@ -598,6 +626,7 @@
               🚀 Publicar
             </button>
           </div>
+          ${dadosHTML}
         </div>`;
     }).join('');
   }
