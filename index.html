@@ -220,6 +220,46 @@
   .senha-error { background: #fff5f6; border: 1px solid rgba(200,16,46,0.25); border-left: 3px solid var(--red); border-radius: var(--radius); padding: 10px 13px; font-size: 12px; color: var(--red-dark); margin-bottom: 16px; display: none; }
 
 
+  /* ── PERMISSÕES ── */
+  .perm-badges { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 5px; }
+  .perm-badge { background: var(--red-dim); border-radius: 3px; padding: 2px 7px; font-size: 10px; color: var(--red); font-weight: 600; letter-spacing: .04em; }
+  .perm-badge.admin { background: rgba(200,16,46,0.14); }
+  .btn-edit-perms { background: transparent; border: 1.5px solid var(--border); border-radius: var(--radius); padding: 5px 10px; color: var(--muted); font-family: 'Montserrat',sans-serif; font-size: 10px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; cursor: pointer; transition: all .2s; margin-right: 6px; flex-shrink: 0; }
+  .btn-edit-perms:hover { border-color: var(--red); color: var(--red); }
+
+  /* ── TIPO DE ACESSO (criar usuário) ── */
+  .tipo-row { display: flex; gap: 10px; margin-bottom: 14px; }
+  .tipo-option { display: flex; align-items: center; justify-content: center; gap: 6px; padding: 10px 16px; border: 1.5px solid var(--border); border-radius: var(--radius); cursor: pointer; flex: 1; transition: all .2s; font-family: 'Montserrat',sans-serif; font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); user-select: none; }
+  .tipo-option:hover { border-color: var(--border2); color: var(--text); }
+  .tipo-option.selected { border-color: var(--red); color: var(--red); background: var(--red-dim); }
+  .tipo-option input[type=radio] { display: none; }
+
+  /* ── CHECKBOXES DASHBOARD ── */
+  .dash-perms-section { margin-bottom: 14px; }
+  .dash-perms-label { font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; display: block; }
+  .dash-check-list { display: flex; flex-direction: column; gap: 6px; max-height: 200px; overflow-y: auto; }
+  .dash-check-item { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border: 1.5px solid var(--border); border-radius: var(--radius); cursor: pointer; transition: all .2s; }
+  .dash-check-item:hover { border-color: var(--border2); }
+  .dash-check-item.checked { border-color: var(--red); background: var(--red-dim); }
+  .dash-check-item input[type=checkbox] { accent-color: var(--red); width: 14px; height: 14px; cursor: pointer; flex-shrink: 0; }
+  .dash-check-item-info { flex: 1; }
+  .dash-check-item-name { font-size: 12px; font-weight: 600; color: var(--text); }
+  .dash-check-item-cat { font-size: 10px; color: var(--muted); letter-spacing: .06em; text-transform: uppercase; margin-top: 1px; }
+
+  /* ── MODAL PERMISSÕES ── */
+  #perm-modal { position: fixed; inset: 0; z-index: 600; display: none; align-items: center; justify-content: center; padding: 24px; background: rgba(0,0,0,0.5); }
+  #perm-modal.open { display: flex; }
+  .perm-panel { background: var(--white); border-radius: var(--radius); width: 100%; max-width: 500px; box-shadow: 0 20px 60px rgba(0,0,0,0.25); animation: fadeUp .3s ease both; overflow: hidden; }
+  .perm-header { background: var(--red); padding: 20px 28px; display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+  .perm-title { font-family: 'Montserrat',sans-serif; font-size: 16px; font-weight: 800; color: #fff; }
+  .perm-subtitle { font-size: 11px; color: rgba(255,255,255,.7); margin-top: 3px; word-break: break-all; }
+  .perm-body { padding: 24px 28px 28px; }
+  .perm-section-title { font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; display: block; }
+  .perm-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+  .btn-salvar-perm { background: var(--red); border: none; border-radius: var(--radius); padding: 10px 22px; color: #fff; font-family: 'Montserrat',sans-serif; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; cursor: pointer; transition: background .2s; min-width: 130px; display: flex; align-items: center; justify-content: center; gap: 6px; }
+  .btn-salvar-perm:hover { background: var(--red-dark); }
+  .btn-salvar-perm:disabled { opacity: .45; cursor: not-allowed; }
+
   /* ── DADOS DO PAINEL ── */
   .dash-data-section { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); }
   .dash-data-toggle { display: flex; align-items: center; gap: 8px; cursor: pointer; font-family: 'Montserrat',sans-serif; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); transition: color .2s; background: none; border: none; padding: 0; width: 100%; text-align: left; }
@@ -365,7 +405,7 @@
         <div class="admin-subtitle">Gerencie painéis e usuários do portal</div>
       </div>
       <div style="display:flex;align-items:center;gap:12px;">
-        <span style="font-size:10px;color:rgba(255,255,255,0.5);letter-spacing:.08em;">v2026.04.29 16:40</span>
+        <span style="font-size:10px;color:rgba(255,255,255,0.5);letter-spacing:.08em;">v2026.04.29 17:30</span>
         <button class="btn-close" onclick="fecharAdmin()">✕</button>
       </div>
     </div>
@@ -398,6 +438,23 @@
               <input type="password" id="new-password" placeholder="Mínimo 6 caracteres">
             </div>
           </div>
+          <div style="margin-bottom:8px;">
+            <span class="form-field" style="display:block;"><label>Tipo de Acesso</label></span>
+          </div>
+          <div class="tipo-row">
+            <label class="tipo-option selected" id="tipo-usuario" onclick="selecionarTipo('usuario')">
+              <input type="radio" name="tipo-acesso" value="usuario" checked> 👤 Usuário
+            </label>
+            <label class="tipo-option" id="tipo-admin" onclick="selecionarTipo('admin')">
+              <input type="radio" name="tipo-acesso" value="admin"> ⚙ Admin
+            </label>
+          </div>
+          <div class="dash-perms-section" id="dash-perms-section">
+            <span class="dash-perms-label">Painéis Visíveis</span>
+            <div class="dash-check-list" id="dash-check-list-new">
+              <div style="font-size:12px;color:var(--muted2);padding:8px;">Carregando painéis...</div>
+            </div>
+          </div>
           <div class="form-actions">
             <button class="btn-cancel" onclick="toggleFormNovoUsuario()">Cancelar</button>
             <button class="btn-criar" id="btn-criar-user" onclick="criarUsuario()">Criar Usuário</button>
@@ -412,8 +469,39 @@
   </div>
 </div>
 
-<!-- TOAST -->
-<div class="toast" id="toast">
+<!-- MODAL PERMISSÕES -->
+<div id="perm-modal">
+  <div class="perm-panel">
+    <div class="perm-header">
+      <div>
+        <div class="perm-title">Editar Permissões</div>
+        <div class="perm-subtitle" id="perm-modal-email">—</div>
+      </div>
+      <button class="btn-close" onclick="fecharPermissoes()">✕</button>
+    </div>
+    <div class="perm-body">
+      <span class="perm-section-title">Tipo de Acesso</span>
+      <div class="tipo-row" style="margin-bottom:20px;">
+        <label class="tipo-option" id="perm-tipo-usuario" onclick="selecionarTipoPerm('usuario')">
+          <input type="radio" name="perm-tipo" value="usuario"> 👤 Usuário
+        </label>
+        <label class="tipo-option" id="perm-tipo-admin" onclick="selecionarTipoPerm('admin')">
+          <input type="radio" name="perm-tipo" value="admin"> ⚙ Admin
+        </label>
+      </div>
+      <div id="perm-dash-section">
+        <span class="perm-section-title">Painéis Visíveis</span>
+        <div class="dash-check-list" id="dash-check-list-perm"></div>
+      </div>
+      <div class="perm-actions">
+        <button class="btn-cancel" onclick="fecharPermissoes()">Cancelar</button>
+        <button class="btn-salvar-perm" id="btn-salvar-perm" onclick="salvarPermissoes()">💾 Salvar Permissões</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
   <span id="toast-icon"></span>
   <span id="toast-msg"></span>
 </div>
@@ -439,7 +527,9 @@
   let dashboardsCache = [];
   let dadosArquivosCache = [];
   let currentUser = null;
+  let currentUserIsAdmin = false;
   let filesCache = {};  // id -> File object
+  let _permUserId = null; // user being edited in perm modal
 
   async function init() {
     const { data: { session } } = await sb.auth.getSession();
@@ -479,9 +569,14 @@
     document.getElementById('login-screen').style.display  = 'none';
     document.getElementById('portal-screen').style.display = 'block';
     document.getElementById('user-email-display').textContent = user.email;
-    if (user.email === ADMIN_EMAIL) {
+
+    // Verifica role do usuário na tabela user_roles
+    const { data: roleData } = await sb.from('user_roles').select('is_admin').eq('user_id', user.id).single();
+    currentUserIsAdmin = roleData?.is_admin === true;
+
+    if (currentUserIsAdmin) {
       document.getElementById('btn-admin').style.display = 'inline-flex';
-      // Busca token de dados do Supabase (só admin)
+      // Busca token de dados do Supabase (só admins)
       const { data: cfg } = await sb.from('config').select('valor').eq('chave', 'github_data_token').single();
       if (cfg) GITHUB_DATA_TOKEN = cfg.valor;
     }
@@ -489,7 +584,27 @@
   }
 
   async function carregarDashboards() {
-    const { data, error } = await sb.from('dashboards').select('*').eq('ativo', true).order('ordem', { ascending: true });
+    let data, error;
+
+    if (currentUserIsAdmin) {
+      // Admin vê todos os dashboards
+      ({ data, error } = await sb.from('dashboards').select('*').eq('ativo', true).order('ordem', { ascending: true }));
+    } else {
+      // Usuário comum: busca apenas dashboards liberados
+      const { data: perms } = await sb.from('user_dashboards').select('dashboard_id').eq('user_id', currentUser.id);
+      const permIds = (perms || []).map(p => p.dashboard_id);
+
+      if (permIds.length === 0) {
+        document.getElementById('grid-ativos').innerHTML =
+          '<p style="color:var(--muted);font-size:13px;grid-column:1/-1;">Nenhum painel disponível para o seu perfil. Solicite acesso ao administrador.</p>';
+        const { data: arqs } = await sb.from('dashboard_arquivos').select('*').order('ordem', { ascending: true });
+        if (arqs) dadosArquivosCache = arqs;
+        return;
+      }
+
+      ({ data, error } = await sb.from('dashboards').select('*').eq('ativo', true).in('id', permIds).order('ordem', { ascending: true }));
+    }
+
     if (error || !data) {
       document.getElementById('grid-ativos').innerHTML = '<p style="color:var(--muted);font-size:13px;">Erro ao carregar painéis.</p>';
       return;
@@ -741,30 +856,84 @@
       list.innerHTML = '<div class="users-loading">Nenhum usuário cadastrado.</div>';
       return;
     }
+    // Mapa de dashboards por id
+    const dashMap = {};
+    dashboardsCache.forEach(d => { dashMap[d.id] = d; });
+
     list.innerHTML = users.map(u => {
       const inicial = u.email ? u.email[0].toUpperCase() : '?';
-      const isAdmin = u.email === ADMIN_EMAIL;
+      const isAdmin = u.is_admin === true;
+      const dashIds = u.dashboard_ids || [];
       const criado  = u.created_at ? new Date(u.created_at).toLocaleDateString('pt-BR') : '—';
+      const isSelf  = u.email === ADMIN_EMAIL;
+
+      // Badges de permissão
+      let permBadges = '';
+      if (isAdmin) {
+        permBadges = '<div class="perm-badges"><span class="perm-badge admin">⚙ Admin — Todos os painéis</span></div>';
+      } else if (dashIds.length > 0) {
+        const names = dashIds.map(id => dashMap[id]?.nome || `#${id}`).filter(Boolean);
+        permBadges = `<div class="perm-badges">${names.map(n => `<span class="perm-badge">${n}</span>`).join('')}</div>`;
+      } else {
+        permBadges = '<div class="perm-badges"><span class="perm-badge" style="color:var(--muted2);background:#f5f5f5;">Sem painéis liberados</span></div>';
+      }
+
       return `
         <div class="user-item" id="user-${u.id}">
           <div class="user-avatar">${inicial}</div>
           <div class="user-info-block">
             <div class="user-email">${u.email}</div>
             <div class="user-meta">Cadastrado em ${criado}</div>
+            ${permBadges}
           </div>
-          ${isAdmin ? '<span class="user-badge-admin">Admin</span>' : ''}
-          ${!isAdmin ? `<button class="btn-delete-user" onclick="deletarUsuario('${u.id}','${u.email}')">Remover</button>` : ''}
+          ${isAdmin && isSelf ? '<span class="user-badge-admin">Admin</span>' : ''}
+          <div style="display:flex;gap:6px;flex-shrink:0;">
+            ${!isSelf ? `<button class="btn-edit-perms" onclick="abrirPermissoes('${u.id}','${u.email}',${isAdmin},${JSON.stringify(dashIds)})">✏ Permissões</button>` : ''}
+            ${!isSelf ? `<button class="btn-delete-user" onclick="deletarUsuario('${u.id}','${u.email}')">Remover</button>` : ''}
+          </div>
         </div>`;
     }).join('');
+  }
+
+  function selecionarTipo(tipo) {
+    document.getElementById('tipo-usuario').classList.toggle('selected', tipo === 'usuario');
+    document.getElementById('tipo-admin').classList.toggle('selected', tipo === 'admin');
+    document.getElementById('dash-perms-section').style.display = tipo === 'admin' ? 'none' : 'block';
   }
 
   function toggleFormNovoUsuario() {
     const form = document.getElementById('new-user-form');
     form.classList.toggle('open');
-    if (!form.classList.contains('open')) {
+    if (form.classList.contains('open')) {
+      document.getElementById('new-email').value = '';
+      document.getElementById('new-password').value = '';
+      selecionarTipo('usuario');
+      // Popula checkboxes com dashboards ativos (não "em breve")
+      const ativos = dashboardsCache.filter(d => !d.em_breve);
+      const container = document.getElementById('dash-check-list-new');
+      if (ativos.length === 0) {
+        container.innerHTML = '<div style="font-size:12px;color:var(--muted2);padding:8px;">Nenhum painel cadastrado.</div>';
+      } else {
+        container.innerHTML = ativos.map(d => `
+          <label class="dash-check-item" id="new-check-${d.id}" onclick="toggleDashCheck(${d.id},'new')">
+            <input type="checkbox" id="new-chk-${d.id}" value="${d.id}">
+            <div class="dash-check-item-info">
+              <div class="dash-check-item-name">${d.icone||'📊'} ${d.nome}</div>
+              <div class="dash-check-item-cat">${d.categoria}</div>
+            </div>
+          </label>`).join('');
+      }
+    } else {
       document.getElementById('new-email').value = '';
       document.getElementById('new-password').value = '';
     }
+  }
+
+  function toggleDashCheck(dashId, prefix) {
+    const item  = document.getElementById(`${prefix}-check-${dashId}`);
+    const chk   = document.getElementById(`${prefix}-chk-${dashId}`);
+    chk.checked = !chk.checked;
+    item.classList.toggle('checked', chk.checked);
   }
 
   async function criarUsuario() {
@@ -773,9 +942,15 @@
     const btn      = document.getElementById('btn-criar-user');
     if (!email || !password) { showToast('Preencha e-mail e senha.', 'error'); return; }
     if (password.length < 6) { showToast('Senha deve ter no mínimo 6 caracteres.', 'error'); return; }
+
+    const is_admin = document.getElementById('tipo-admin').classList.contains('selected');
+    const dashboard_ids = is_admin ? [] : Array.from(
+      document.querySelectorAll('#dash-check-list-new input[type=checkbox]:checked')
+    ).map(c => parseInt(c.value));
+
     btn.disabled = true;
     btn.innerHTML = '<span class="spinner-sm"></span> Criando...';
-    const result = await chamadaEdgeFunction({ action: 'create', email, password });
+    const result = await chamadaEdgeFunction({ action: 'create', email, password, is_admin, dashboard_ids });
     btn.disabled = false;
     btn.innerHTML = 'Criar Usuário';
     if (result.error) { showToast(`Erro: ${result.error}`, 'error'); return; }
@@ -801,7 +976,74 @@
   }
 
 
-  // ── MODAL SENHA ──
+  // ── MODAL PERMISSÕES ──
+  function abrirPermissoes(userId, email, isAdmin, dashboardIds) {
+    _permUserId = userId;
+    document.getElementById('perm-modal-email').textContent = email;
+    selecionarTipoPerm(isAdmin ? 'admin' : 'usuario');
+
+    // Popula checkboxes
+    const ativos = dashboardsCache.filter(d => !d.em_breve);
+    const container = document.getElementById('dash-check-list-perm');
+    if (ativos.length === 0) {
+      container.innerHTML = '<div style="font-size:12px;color:var(--muted2);padding:8px;">Nenhum painel cadastrado.</div>';
+    } else {
+      container.innerHTML = ativos.map(d => {
+        const checked = dashboardIds.includes(d.id);
+        return `
+          <label class="dash-check-item${checked ? ' checked' : ''}" id="perm-check-${d.id}" onclick="toggleDashCheck(${d.id},'perm')">
+            <input type="checkbox" id="perm-chk-${d.id}" value="${d.id}"${checked ? ' checked' : ''}>
+            <div class="dash-check-item-info">
+              <div class="dash-check-item-name">${d.icone||'📊'} ${d.nome}</div>
+              <div class="dash-check-item-cat">${d.categoria}</div>
+            </div>
+          </label>`;
+      }).join('');
+    }
+
+    document.getElementById('perm-modal').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function selecionarTipoPerm(tipo) {
+    document.getElementById('perm-tipo-usuario').classList.toggle('selected', tipo === 'usuario');
+    document.getElementById('perm-tipo-admin').classList.toggle('selected', tipo === 'admin');
+    document.getElementById('perm-dash-section').style.display = tipo === 'admin' ? 'none' : 'block';
+  }
+
+  function fecharPermissoes() {
+    document.getElementById('perm-modal').classList.remove('open');
+    document.body.style.overflow = '';
+    _permUserId = null;
+  }
+
+  async function salvarPermissoes() {
+    if (!_permUserId) return;
+    const btn = document.getElementById('btn-salvar-perm');
+    const is_admin = document.getElementById('perm-tipo-admin').classList.contains('selected');
+    const dashboard_ids = is_admin ? [] : Array.from(
+      document.querySelectorAll('#dash-check-list-perm input[type=checkbox]:checked')
+    ).map(c => parseInt(c.value));
+
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-sm"></span>';
+    const result = await chamadaEdgeFunction({ action: 'update_permissions', userId: _permUserId, is_admin, dashboard_ids });
+    btn.disabled = false;
+    btn.innerHTML = '💾 Salvar Permissões';
+
+    if (result.error) { showToast(`Erro: ${result.error}`, 'error'); return; }
+    showToast('Permissões salvas!', 'success');
+    fecharPermissoes();
+    await carregarUsuarios();
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('perm-modal').addEventListener('click', function(e) {
+      if (e.target === this) fecharPermissoes();
+    });
+  });
+
+
   function abrirSenha() {
     document.getElementById('nova-senha').value = '';
     document.getElementById('confirmar-senha').value = '';
