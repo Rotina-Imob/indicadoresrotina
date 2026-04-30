@@ -405,7 +405,7 @@
         <div class="admin-subtitle">Gerencie painéis e usuários do portal</div>
       </div>
       <div style="display:flex;align-items:center;gap:12px;">
-        <span style="font-size:10px;color:rgba(255,255,255,0.5);letter-spacing:.08em;">v2026.04.29 18:00</span>
+        <span style="font-size:10px;color:rgba(255,255,255,0.5);letter-spacing:.08em;">v2026.04.29 18:30</span>
         <button class="btn-close" onclick="fecharAdmin()">✕</button>
       </div>
     </div>
@@ -641,7 +641,7 @@
         <div class="dash-footer"><span class="dash-tag">Em breve</span></div>
       </div>`;
     return `
-      <a class="dash-card" href="${d.url}" target="_blank" rel="noopener" style="animation-delay:${delay}s">
+      <a class="dash-card" href="${d.url}?v=${Date.now()}" target="_blank" rel="noopener" style="animation-delay:${delay}s">
         <div class="dash-icon">${d.icone||'📊'}</div>
         <div class="dash-category">${d.categoria}</div>
         <div class="dash-title">${d.nome}</div>
