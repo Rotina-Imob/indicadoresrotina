@@ -405,7 +405,7 @@
         <div class="admin-subtitle">Gerencie painéis e usuários do portal</div>
       </div>
       <div style="display:flex;align-items:center;gap:12px;">
-        <span style="font-size:10px;color:rgba(255,255,255,0.5);letter-spacing:.08em;">v2026.04.29 19:00</span>
+        <span style="font-size:10px;color:rgba(255,255,255,0.5);letter-spacing:.08em;">v2026.04.29 19:15</span>
         <button class="btn-close" onclick="fecharAdmin()">✕</button>
       </div>
     </div>
@@ -422,10 +422,10 @@
           <div style="font-family:'Montserrat',sans-serif;font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px;">Atualizar Portal</div>
           <div style="font-size:12px;color:var(--muted);margin-bottom:20px;">Publique uma nova versão do <code style="background:#f0f0f0;padding:2px 6px;border-radius:3px;font-size:11px;">index.html</code> diretamente no GitHub, sem precisar acessar o repositório.</div>
 
-          <div class="upload-drop-area" id="portal-drop-area" onclick="document.getElementById('portal-file-input').click()" ondragover="event.preventDefault()" ondrop="handlePortalDrop(event)">
+          <div class="upload-drop-area" id="portal-drop-area" ondragover="event.preventDefault()" ondrop="handlePortalDrop(event)" style="position:relative;">
             <div class="upload-icon">🌐</div>
             <div class="upload-text">Arraste o <strong>index.html</strong> ou <span class="upload-link">clique para selecionar</span></div>
-            <input type="file" id="portal-file-input" accept=".html" style="display:none" onchange="handlePortalFile(event)">
+            <input type="file" id="portal-file-input" accept=".html" style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;" onchange="handlePortalFile(event)">
           </div>
 
           <div style="margin-top:14px;display:flex;align-items:center;gap:10px;">
