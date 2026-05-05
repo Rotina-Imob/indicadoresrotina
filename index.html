@@ -405,7 +405,7 @@
         <div class="admin-subtitle">Gerencie painéis e usuários do portal</div>
       </div>
       <div style="display:flex;align-items:center;gap:12px;">
-        <span style="font-size:10px;color:rgba(255,255,255,0.5);letter-spacing:.08em;">v2026.04.29 19:15</span>
+        <span style="font-size:10px;color:rgba(255,255,255,0.5);letter-spacing:.08em;">v2026.04.29 19:30</span>
         <button class="btn-close" onclick="fecharAdmin()">✕</button>
       </div>
     </div>
@@ -422,10 +422,11 @@
           <div style="font-family:'Montserrat',sans-serif;font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px;">Atualizar Portal</div>
           <div style="font-size:12px;color:var(--muted);margin-bottom:20px;">Publique uma nova versão do <code style="background:#f0f0f0;padding:2px 6px;border-radius:3px;font-size:11px;">index.html</code> diretamente no GitHub, sem precisar acessar o repositório.</div>
 
-          <div class="upload-drop-area" id="portal-drop-area" ondragover="event.preventDefault()" ondrop="handlePortalDrop(event)" style="position:relative;">
-            <div class="upload-icon">🌐</div>
-            <div class="upload-text">Arraste o <strong>index.html</strong> ou <span class="upload-link">clique para selecionar</span></div>
-            <input type="file" id="portal-file-input" accept=".html" style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;" onchange="handlePortalFile(event)">
+          <div class="upload-area" id="portal-drop-area" ondragover="this.classList.add('dragover');event.preventDefault()" ondragleave="this.classList.remove('dragover')" ondrop="this.classList.remove('dragover');handlePortalDrop(event)">
+            <div class="upload-area-icon">📄</div>
+            <div class="upload-area-text">Arraste o <strong>index.html</strong> ou clique para selecionar</div>
+            <div class="upload-file-name" id="portal-file-name"></div>
+            <input type="file" id="portal-file-input" accept=".html" onchange="handlePortalFile(event)">
           </div>
 
           <div style="margin-top:14px;display:flex;align-items:center;gap:10px;">
@@ -433,7 +434,7 @@
             <button class="btn-publish" id="btn-publish-portal" onclick="publicarPortal()" disabled>🚀 Publicar Portal</button>
           </div>
 
-          <div id="portal-file-info" style="margin-top:10px;font-size:12px;color:var(--muted);display:none;"></div>
+          <div id="portal-file-info" style="display:none;"></div>
         </div>
       </div>
 
@@ -1088,12 +1089,9 @@
       return;
     }
     _portalFile = file;
-    const area = document.getElementById('portal-drop-area');
-    area.style.borderColor = 'var(--red)';
-    area.style.background  = 'var(--red-dim)';
-    const info = document.getElementById('portal-file-info');
-    info.style.display = 'block';
-    info.innerHTML = `✅ <strong>${file.name}</strong> — ${(file.size / 1024).toFixed(0)} KB selecionado`;
+    const nome = document.getElementById('portal-file-name');
+    nome.textContent = `✅ ${file.name} — ${(file.size / 1024).toFixed(0)} KB`;
+    nome.style.display = 'block';
     document.getElementById('btn-publish-portal').disabled = false;
   }
 
@@ -1108,9 +1106,8 @@
       if (result.error) throw new Error(result.error);
       showToast('Portal atualizado! Aguarde ~1 minuto.', 'success');
       _portalFile = null;
-      document.getElementById('portal-drop-area').style.borderColor = '';
-      document.getElementById('portal-drop-area').style.background  = '';
-      document.getElementById('portal-file-info').style.display = 'none';
+      document.getElementById('portal-file-name').style.display = 'none';
+      document.getElementById('portal-file-name').textContent = '';
       document.getElementById('portal-file-input').value = '';
     } catch(e) {
       showToast(`Erro: ${e.message}`, 'error');
