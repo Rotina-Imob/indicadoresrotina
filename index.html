@@ -405,7 +405,7 @@
         <div class="admin-subtitle">Gerencie painéis e usuários do portal</div>
       </div>
       <div style="display:flex;align-items:center;gap:12px;">
-        <span style="font-size:10px;color:rgba(255,255,255,0.5);letter-spacing:.08em;">v2026.04.29 19:30</span>
+        <span style="font-size:10px;color:rgba(255,255,255,0.5);letter-spacing:.08em;">v2026.04.29 19:45</span>
         <button class="btn-close" onclick="fecharAdmin()">✕</button>
       </div>
     </div>
@@ -1188,8 +1188,9 @@
       if (!dadosFilesMap[dashId]) dadosFilesMap[dashId] = {};
       dadosFilesMap[dashId][arquivoId] = null; atualizarBotaoDados(dashId); return;
     }
-    let valido = file.name.toLowerCase().startsWith(prefixo.toLowerCase());
-    if (prefixo === 'tb_mov_inq_' && file.name.toLowerCase().startsWith('tb_mov_inq_detalhe_')) valido = false;
+    const prefixoBase = prefixo.endsWith('_') ? prefixo.slice(0, -1) : prefixo;
+    let valido = file.name.toLowerCase().startsWith(prefixoBase.toLowerCase());
+    if (prefixo === 'tb_mov_inq_' && file.name.toLowerCase().startsWith('tb_mov_inq_detalhe')) valido = false;
     if (!valido) {
       uploadEl.className = 'dado-row-upload invalid';
       fnameEl.textContent = `✕ ${file.name} — prefixo incorreto`;
