@@ -446,7 +446,7 @@
         <div class="admin-subtitle">Gerencie painéis e usuários do portal</div>
       </div>
       <div style="display:flex;align-items:center;gap:12px;">
-        <span style="font-size:10px;color:rgba(255,255,255,0.5);letter-spacing:.08em;">v2026.05.05 11:30</span>
+        <span style="font-size:10px;color:rgba(255,255,255,0.5);letter-spacing:.08em;">v2026.05.05 12:00</span>
         <button class="btn-close" onclick="fecharAdmin()">✕</button>
       </div>
     </div>
@@ -942,8 +942,8 @@
 
       if (result.error) throw new Error(result.error);
 
-      // Atualiza URL no Supabase
-      await sb.from('dashboards').update({ url: netlifyUrl }).eq('id', id);
+      // Atualiza URL no Supabase via Edge Function (bypassa RLS)
+      await chamadaEdgeFunction({ action: 'update_dashboard_url', dashboardId: id, url: netlifyUrl });
 
       // Atualiza URL no campo
       document.getElementById(`url-${id}`).value = netlifyUrl;
