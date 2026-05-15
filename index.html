@@ -438,7 +438,7 @@
         <div class="admin-subtitle">Gerencie painéis e usuários do portal</div>
       </div>
       <div style="display:flex;align-items:center;gap:12px;">
-        <span style="font-size:10px;color:rgba(255,255,255,0.5);letter-spacing:.08em;">v2026.05.05 10:30</span>
+        <span style="font-size:10px;color:rgba(255,255,255,0.5);letter-spacing:.08em;">v2026.05.05 11:00</span>
         <button class="btn-close" onclick="fecharAdmin()">✕</button>
       </div>
     </div>
@@ -1174,36 +1174,13 @@
     btn.innerHTML = '<span class="spinner-sm"></span> Criando...';
 
     try {
-      // 1. Busca a maior ordem atual
-      const { data: existentes } = await sb.from('dashboards').select('ordem').order('ordem', { ascending: false }).limit(1);
-      const novaOrdem = existentes?.length ? (existentes[0].ordem || 0) + 1 : 1;
-
-      // 2. Insere o dashboard
-      const { data: dash, error: dashErr } = await sb.from('dashboards').insert({
-        nome, categoria, descricao, icone, tag,
-        url: null, ativo: true, em_breve: false, ordem: novaOrdem
-      }).select().single();
-      if (dashErr) throw new Error(dashErr.message);
-
-      // 3. Insere os arquivos de dados
-      if (arquivos.length > 0) {
-        const rows = arquivos.map(a => ({
-          dashboard_id: dash.id,
-          label:   a.label,
-          prefixo: a.prefixo,
-          pasta,
-          ordem:   a.ordem
-        }));
-        const { error: arqErr } = await sb.from('dashboard_arquivos').insert(rows);
-        if (arqErr) throw new Error(arqErr.message);
-      }
-
-      // 4. Cria a pasta no repositório rotina-imob-data via Edge Function
-      const gitResult = await chamadaEdgeFunction({
-        action:      'criar_pasta_dados',
-        pasta,
+      // Delega tudo para a Edge Function (bypassa RLS)
+      const resultado = await chamadaEdgeFunction({
+        action:    'criar_painel',
+        nome, categoria, descricao, icone, tag, pasta,
+        arquivos
       });
-      if (gitResult.error) throw new Error(`Painel criado, mas falha ao criar pasta: ${gitResult.error}`);
+      if (resultado.error) throw new Error(resultado.error);
 
       showToast(`Painel "${nome}" criado com sucesso!`, 'success');
       fecharNovoPainel();
