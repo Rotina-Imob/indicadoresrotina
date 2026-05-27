@@ -2767,6 +2767,136 @@ renderAll();
 <!-- ── ABA RESULTADO ── -->
 <div id="tab-resultado" class="tab-content">
 
+<div class="filter-panel" class="filter-panel">
+  <div class="filter-panel-header" onclick="toggleFilters(this)">
+    <span>🔍 Filtros</span>
+    <span class="filter-count-badge" class="filter-count-badge" style="display:none"></span>
+    <span class="filter-toggle-icon">▼</span>
+  </div>
+  <div class="filter-panel-body" class="filter-panel-body">
+    <div class="filter-row">
+      <div class="filter-group">
+        <label class="filter-lbl">Situação</label>
+        <div class="filter-chips" id="fchip-situacao">
+          <span class="fchip active" data-group="situacao" data-val="">Todos</span>
+          <span class="fchip" data-group="situacao" data-val="ATIVO">Ativo</span>
+          <span class="fchip" data-group="situacao" data-val="RESCINDIDO">Rescindido</span>
+        </div>
+      </div>
+      <div class="filter-group">
+        <label class="filter-lbl">Faixa de Tempo</label>
+        <div class="filter-chips" id="fchip-faixa">
+          <span class="fchip active" data-group="faixa" data-val="">Todas</span>
+          <span class="fchip" data-group="faixa" data-val="0-15 dias">0-15 dias</span>
+<span class="fchip" data-group="faixa" data-val="15-30 dias">15-30 dias</span>
+<span class="fchip" data-group="faixa" data-val="30-60 dias">30-60 dias</span>
+<span class="fchip" data-group="faixa" data-val="60-90 dias">60-90 dias</span>
+<span class="fchip" data-group="faixa" data-val="90-180 dias">90-180 dias</span>
+<span class="fchip" data-group="faixa" data-val="180-360 dias">180-360 dias</span>
+<span class="fchip" data-group="faixa" data-val=">360 dias">>360 dias</span>
+        </div>
+      </div>
+    </div>
+    <div class="filter-row">
+      <div class="filter-group">
+        <label class="filter-lbl">Tipo de Garantia</label>
+        <select class="filter-sel" id="fsel-garantia" onchange="applyFilters()">
+          <option value="">Todas</option>
+          <option value="CAUÇÃO">CAUÇÃO</option>
+<option value="CONTRATOS NÃO TOMBADOS QUINTOCRED">CONTRATOS NÃO TOMBADOS QUINTOCRED</option>
+<option value="CREDALUGA">CREDALUGA</option>
+<option value="CREDPAGO">CREDPAGO</option>
+<option value="FIADOR">FIADOR</option>
+<option value="OUTROS">OUTROS</option>
+<option value="QUINTOCRED">QUINTOCRED</option>
+<option value="SEGURO FIANÇA">SEGURO FIANÇA</option>
+<option value="SEM GARANTIA">SEM GARANTIA</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label class="filter-lbl">Descrição Contábil</label>
+        <select class="filter-sel" id="fsel-contabil" onchange="applyFilters()">
+          <option value="">Todas</option>
+          <option value="ALUGUEL">ALUGUEL</option>
+<option value="ANTECIPAÇÃO DE ALUGUEL">ANTECIPAÇÃO DE ALUGUEL</option>
+<option value="CAUÇÃO FIANÇA">CAUÇÃO FIANÇA</option>
+<option value="CAUÇÃO P/ DESPEJO">CAUÇÃO P/ DESPEJO</option>
+<option value="COMISSÃO S/ ADMINISTRAÇÃO DE IPTU">COMISSÃO S/ ADMINISTRAÇÃO DE IPTU</option>
+<option value="COMISSÃO S/ OBRAS">COMISSÃO S/ OBRAS</option>
+<option value="CONDOMÍNIO">CONDOMÍNIO</option>
+<option value="CORREÇÃO MONETÁRIA">CORREÇÃO MONETÁRIA</option>
+<option value="CUSTAS PROCESSUAIS">CUSTAS PROCESSUAIS</option>
+<option value="CUSTAS PROCESSUAIS (RECEITA)">CUSTAS PROCESSUAIS (RECEITA)</option>
+<option value="DESCONTO ALUGUEL">DESCONTO ALUGUEL</option>
+<option value="DESCONTO PONTUALIDADE">DESCONTO PONTUALIDADE</option>
+<option value="DESPESA C/ CARTÓRIO">DESPESA C/ CARTÓRIO</option>
+<option value="DESPESA C/ NOTIFICAÇÃO">DESPESA C/ NOTIFICAÇÃO</option>
+<option value="FUNDO DE REPARO DO IMÓVEL - FRI">FUNDO DE REPARO DO IMÓVEL - FRI</option>
+<option value="FUNDO DE RESERVA / OBRA">FUNDO DE RESERVA / OBRA</option>
+<option value="GARANTIA LOCATÍCIA">GARANTIA LOCATÍCIA</option>
+<option value="HONORÁRIOS ADVOCATÍCIOS">HONORÁRIOS ADVOCATÍCIOS</option>
+<option value="HONORÁRIOS ADVOCATÍCIOS (REPASSE)">HONORÁRIOS ADVOCATÍCIOS (REPASSE)</option>
+<option value="IPTU">IPTU</option>
+<option value="IRRF">IRRF</option>
+<option value="JUROS">JUROS</option>
+<option value="LUZ">LUZ</option>
+<option value="MULTA">MULTA</option>
+<option value="MULTA RESCISÓRIA">MULTA RESCISÓRIA</option>
+<option value="MULTAS">MULTAS</option>
+<option value="OUTRAS ENTRADAS TRANSITÓRIAS">OUTRAS ENTRADAS TRANSITÓRIAS</option>
+<option value="OUTRAS RECEITAS ALUGUEL">OUTRAS RECEITAS ALUGUEL</option>
+<option value="OUTRAS SAÍDAS TRANSITÓRIAS">OUTRAS SAÍDAS TRANSITÓRIAS</option>
+<option value="PIS">PIS</option>
+<option value="PJNO - GESTÃO">PJNO - GESTÃO</option>
+<option value="PJO - AGUA">PJO - AGUA</option>
+<option value="PJO - CONDOMÍNIO">PJO - CONDOMÍNIO</option>
+<option value="PJO - DESPESA DE CARTÓRIO">PJO - DESPESA DE CARTÓRIO</option>
+<option value="PJO - GARANTIA LOCATÍCIA">PJO - GARANTIA LOCATÍCIA</option>
+<option value="PJO - IPTU">PJO - IPTU</option>
+<option value="PJO - LUZ">PJO - LUZ</option>
+<option value="PJO - OBRAS">PJO - OBRAS</option>
+<option value="PREJUÍZOS OPERACIONAIS">PREJUÍZOS OPERACIONAIS</option>
+<option value="REEMBOLSO DE CONTAS PAGAS DE TERCEIROS">REEMBOLSO DE CONTAS PAGAS DE TERCEIROS</option>
+<option value="REFORMA PAGA PELO CLIENTE">REFORMA PAGA PELO CLIENTE</option>
+<option value="SEGURO FIANÇA">SEGURO FIANÇA</option>
+<option value="SEGURO INCÊNDIO">SEGURO INCÊNDIO</option>
+<option value="TAXA 13º">TAXA 13º</option>
+<option value="TAXA ADMINISTRAÇÃO">TAXA ADMINISTRAÇÃO</option>
+<option value="TAXA ADMINISTRAÇÃO JUROS">TAXA ADMINISTRAÇÃO JUROS</option>
+<option value="TAXA COLETA DE LIXO">TAXA COLETA DE LIXO</option>
+<option value="TAXA DE COLETA DE RESÍDUOS SÓLIDOS">TAXA DE COLETA DE RESÍDUOS SÓLIDOS</option>
+<option value="TAXA INTERMEDIAÇÃO">TAXA INTERMEDIAÇÃO</option>
+<option value="ÁGUA">ÁGUA</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label class="filter-lbl">Cód. Contrato</label>
+        <input class="filter-sel" type="text" id="finput-contrato"
+          placeholder="ex: 1234" oninput="debounceFilter()"
+          onkeydown="if(event.key==='Enter'){clearTimeout(_debTimer);applyFilters();}"
+          autocomplete="off">
+      </div>
+      <div class="filter-group" style="justify-content:flex-end;align-self:flex-end">
+        <button class="btn-limpar" onclick="clearFilters()">↺ Limpar filtros</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="filter-summary"></div>
+<!-- FILTRO DE PERÍODO -->
+<div class="date-filter-bar">
+  <div class="date-filter-group">
+    <label class="filter-lbl">Data Início</label>
+    <input type="month" class="date-input periodo-ini" onchange="applyPeriodo(this,'ini')">
+  </div>
+  <div class="date-filter-group">
+    <label class="filter-lbl">Data Fim</label>
+    <input type="month" class="date-input periodo-fim" onchange="applyPeriodo(this,'fim')">
+  </div>
+  <button class="btn-periodo-limpar" onclick="limparPeriodo()">↺ Todo o período</button>
+  <span class="periodo-resumo"></span>
+</div>
+
   <!-- KPIs -->
   <div class="res-kpi-grid">
     <div class="res-kpi">
