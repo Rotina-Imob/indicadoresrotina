@@ -446,7 +446,7 @@
         <div class="admin-subtitle">Gerencie painéis e usuários do portal</div>
       </div>
       <div style="display:flex;align-items:center;gap:12px;">
-        <span style="font-size:10px;color:rgba(255,255,255,0.5);letter-spacing:.08em;">v2026.05.05 12:00</span>
+        <span style="font-size:10px;color:rgba(255,255,255,0.5);letter-spacing:.08em;">v2026.05.05 12:30</span>
         <button class="btn-close" onclick="fecharAdmin()">✕</button>
       </div>
     </div>
@@ -842,7 +842,7 @@
                   <span class="dado-row-status vazio" id="dado-status-${d.id}-${a.id}">Aguardando</span>
                 </div>
                 <div class="dado-row-upload" id="dado-upload-${d.id}-${a.id}">
-                  <input type="file" accept="${a.prefixo.toLowerCase().startsWith('excecoes') ? '.json' : '.csv'}" onchange="handleDadoFile(event,${d.id},${a.id},'${a.prefixo}','${a.pasta}')">
+                  <input type="file" accept="${a.prefixo.toLowerCase().startsWith('excecoes') ? '.json' : '.csv,.xlsx,.xls,.txt'}" onchange="handleDadoFile(event,${d.id},${a.id},'${a.prefixo}','${a.pasta}')">
                   <span class="dado-row-upload-icon">📎</span>
                   <span class="dado-row-upload-text" id="dado-fname-${d.id}-${a.id}">Clique para selecionar o ${a.prefixo.toLowerCase().startsWith('excecoes') ? 'JSON' : 'CSV'}</span>
                 </div>
@@ -1161,6 +1161,9 @@
       <select id="np-arq-tipo-${idx}">
         <option value="csv">CSV</option>
         <option value="json">JSON</option>
+        <option value="xlsx">XLSX</option>
+        <option value="xls">XLS</option>
+        <option value="txt">TXT</option>
       </select>
       <button class="btn-del-arquivo" onclick="npDelArquivo(${idx})" title="Remover">✕</button>
     `;
@@ -1409,12 +1412,29 @@
     const fnameEl  = document.getElementById(`dado-fname-${dashId}-${arquivoId}`);
     const statusEl = document.getElementById(`dado-status-${dashId}-${arquivoId}`);
 
-    const isJson = prefixo.toLowerCase().startsWith('excecoes');
-    const ext    = isJson ? '.json' : '.csv';
+    const isJson  = prefixo.toLowerCase().startsWith('excecoes');
+    const extMap  = { json: '.json', csv: '.csv', xlsx: '.xlsx', xls: '.xls', txt: '.txt' };
 
-    if (!file.name.toLowerCase().endsWith(ext)) {
+    // Determina extensão esperada pelo prefixo (json) ou pelo tipo cadastrado no campo
+    // Para campos sem prefixo especial, aceita qualquer extensão válida
+    let extEsperada = null;
+    if (isJson) extEsperada = '.json';
+
+    const extValidas = ['.csv', '.json', '.xlsx', '.xls', '.txt'];
+    const nomeMin = file.name.toLowerCase();
+    const extArquivo = extValidas.find(e => nomeMin.endsWith(e));
+
+    if (!extArquivo) {
       uploadEl.className = 'dado-row-upload invalid';
-      fnameEl.textContent = `✕ Arquivo deve ser ${ext}`;
+      fnameEl.textContent = `✕ Tipo inválido — use CSV, JSON, XLSX, XLS ou TXT`;
+      statusEl.className = 'dado-row-status erro'; statusEl.textContent = 'Inválido';
+      if (!dadosFilesMap[dashId]) dadosFilesMap[dashId] = {};
+      dadosFilesMap[dashId][arquivoId] = null; atualizarBotaoDados(dashId); return;
+    }
+
+    if (extEsperada && !nomeMin.endsWith(extEsperada)) {
+      uploadEl.className = 'dado-row-upload invalid';
+      fnameEl.textContent = `✕ Arquivo deve ser ${extEsperada}`;
       statusEl.className = 'dado-row-status erro'; statusEl.textContent = 'Inválido';
       if (!dadosFilesMap[dashId]) dadosFilesMap[dashId] = {};
       dadosFilesMap[dashId][arquivoId] = null; atualizarBotaoDados(dashId); return;
@@ -1494,10 +1514,11 @@
       'X-GitHub-Api-Version': '2022-11-28'
     };
 
-    const isJson = file.name.toLowerCase().endsWith('.json');
+    const nomeMin2  = file.name.toLowerCase();
+    const useGzip   = nomeMin2.endsWith('.csv'); // apenas CSV é comprimido
     let b64, filenameGz;
 
-    if (isJson) {
+    if (!useGzip) {
       // JSON: envia sem compressão, mantém nome original
       const arrayBuffer = await file.arrayBuffer();
       const uint8 = new Uint8Array(arrayBuffer);
@@ -1507,7 +1528,7 @@
         raw += String.fromCharCode(...uint8.subarray(i, i + chunkSize));
       }
       b64 = btoa(raw);
-      filenameGz = filename; // sem .gz
+      filenameGz = filename; // sem .gz — JSON, XLSX, XLS, TXT mantêm nome original
     } else {
       // CSV: comprime em gzip antes de enviar
       const arrayBuffer = await file.arrayBuffer();
