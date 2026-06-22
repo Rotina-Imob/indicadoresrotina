@@ -446,7 +446,7 @@
         <div class="admin-subtitle">Gerencie painéis e usuários do portal</div>
       </div>
       <div style="display:flex;align-items:center;gap:12px;">
-        <span style="font-size:10px;color:rgba(255,255,255,0.5);letter-spacing:.08em;">v2026.05.05 12:30</span>
+        <span style="font-size:10px;color:rgba(255,255,255,0.5);letter-spacing:.08em;">v2026.05.05 13:00</span>
         <button class="btn-close" onclick="fecharAdmin()">✕</button>
       </div>
     </div>
@@ -542,8 +542,8 @@
   <div class="np-panel">
     <div class="np-header">
       <div>
-        <div class="np-title">➕ Novo Painel</div>
-        <div class="np-subtitle">Cadastra o painel no Supabase e cria a pasta no repositório de dados</div>
+        <div class="np-title" id="np-modal-title">➕ Novo Painel</div>
+        <div class="np-subtitle" id="np-modal-subtitle">Cadastra o painel no Supabase e cria a pasta no repositório de dados</div>
       </div>
       <button class="btn-close" onclick="fecharNovoPainel()">✕</button>
     </div>
@@ -865,6 +865,7 @@
               <div class="admin-dash-cat">${d.categoria}</div>
             </div>
             <span class="admin-dash-badge ${d.em_breve?'em-breve':''}">${d.em_breve?'Em breve':'Ativo'}</span>
+            <button class="btn-edit-perms" onclick="abrirEditarPainel(${d.id})" style="margin-left:8px;">✏ Editar</button>
           </div>
 
           <div class="upload-area" id="upload-area-${d.id}"
@@ -1130,17 +1131,72 @@
   }
 
 
-  // ── NOVO PAINEL ──
+  // ── NOVO / EDITAR PAINEL ──
   let _npArquivoIdx = 0;
+  let _npMode = 'criar'; // 'criar' ou 'editar'
+  let _npDashId = null;
+
+  function _npPopularArquivos(arquivos) {
+    document.getElementById('np-arquivos-list').innerHTML = '';
+    if (arquivos.length === 0) { npAddArquivo(); return; }
+    arquivos.forEach(a => {
+      const idx = _npArquivoIdx++;
+      const row = document.createElement('div');
+      row.className = 'np-arquivo-row';
+      row.id = `np-arq-${idx}`;
+      const tipoSel = (v) => ['csv','json','xlsx','xls','txt'].map(t =>
+        `<option value="${t}"${t===v?' selected':''}>${t.toUpperCase()}</option>`).join('');
+      const tipo = a.tipo || (a.prefixo?.toLowerCase().startsWith('excecoes') ? 'json' : 'csv');
+      row.innerHTML = `
+        <input type="text" placeholder="Label" id="np-arq-label-${idx}" value="${a.label||''}">
+        <input type="text" placeholder="Prefixo" id="np-arq-prefixo-${idx}" value="${a.prefixo||''}">
+        <select id="np-arq-tipo-${idx}">${tipoSel(tipo)}</select>
+        <button class="btn-del-arquivo" onclick="npDelArquivo(${idx})" title="Remover">✕</button>`;
+      document.getElementById('np-arquivos-list').appendChild(row);
+    });
+  }
 
   function abrirNovoPainel() {
+    _npMode = 'criar';
+    _npDashId = null;
     _npArquivoIdx = 0;
     ['np-nome','np-categoria','np-icone','np-tag','np-pasta','np-descricao'].forEach(id => {
       document.getElementById(id).value = '';
     });
     document.getElementById('np-icone').value = '📊';
-    document.getElementById('np-arquivos-list').innerHTML = '';
-    npAddArquivo();
+    document.getElementById('np-pasta').disabled = false;
+    document.getElementById('np-modal-title').textContent = '➕ Novo Painel';
+    document.getElementById('np-modal-subtitle').textContent = 'Cadastra o painel no Supabase e cria a pasta no repositório de dados';
+    document.getElementById('btn-criar-painel').textContent = '🚀 Criar Painel';
+    _npPopularArquivos([]);
+    document.getElementById('novo-painel-modal').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function abrirEditarPainel(dashId) {
+    const d = dashboardsCache.find(x => Number(x.id) === Number(dashId));
+    if (!d) return;
+    _npMode = 'editar';
+    _npDashId = dashId;
+    _npArquivoIdx = 0;
+
+    document.getElementById('np-nome').value      = d.nome || '';
+    document.getElementById('np-categoria').value = d.categoria || '';
+    document.getElementById('np-icone').value     = d.icone || '📊';
+    document.getElementById('np-tag').value       = d.tag || '';
+    document.getElementById('np-descricao').value = d.descricao || '';
+
+    // Pasta: pega do primeiro arquivo cadastrado
+    const arqs = dadosArquivosCache.filter(a => Number(a.dashboard_id) === Number(dashId));
+    const pasta = arqs.length > 0 ? arqs[0].pasta : '';
+    document.getElementById('np-pasta').value    = pasta;
+    document.getElementById('np-pasta').disabled = false;
+
+    document.getElementById('np-modal-title').textContent    = '✏ Editar Painel';
+    document.getElementById('np-modal-subtitle').textContent = 'Atualize as informações e os arquivos de dados do painel';
+    document.getElementById('btn-criar-painel').textContent  = '💾 Salvar Alterações';
+
+    _npPopularArquivos(arqs);
     document.getElementById('novo-painel-modal').classList.add('open');
     document.body.style.overflow = 'hidden';
   }
@@ -1187,7 +1243,6 @@
       showToast('Preencha Nome, Categoria e Pasta.', 'error'); return;
     }
 
-    // Coleta arquivos
     const arquivos = [];
     document.querySelectorAll('[id^="np-arq-label-"]').forEach(el => {
       const idx     = el.id.replace('np-arq-label-', '');
@@ -1199,21 +1254,29 @@
 
     const btn = document.getElementById('btn-criar-painel');
     btn.disabled = true;
-    btn.innerHTML = '<span class="spinner-sm"></span> Criando...';
+    btn.innerHTML = '<span class="spinner-sm"></span> Salvando...';
 
     try {
-      // Delega tudo para a Edge Function (bypassa RLS)
-      const resultado = await chamadaEdgeFunction({
-        action:    'criar_painel',
-        nome, categoria, descricao, icone, tag, pasta,
-        arquivos
-      });
-      if (resultado.error) throw new Error(resultado.error);
+      if (_npMode === 'editar') {
+        // ── EDITAR ──
+        const result = await chamadaEdgeFunction({
+          action: 'editar_painel',
+          dashboardId: _npDashId,
+          nome, categoria, descricao, icone, tag, pasta, arquivos
+        });
+        if (result.error) throw new Error(result.error);
+        showToast(`Painel "${nome}" atualizado!`, 'success');
+      } else {
+        // ── CRIAR ──
+        const result = await chamadaEdgeFunction({
+          action: 'criar_painel',
+          nome, categoria, descricao, icone, tag, pasta, arquivos
+        });
+        if (result.error) throw new Error(result.error);
+        showToast(`Painel "${nome}" criado com sucesso!`, 'success');
+      }
 
-      showToast(`Painel "${nome}" criado com sucesso!`, 'success');
       fecharNovoPainel();
-
-      // Recarrega caches
       await carregarDashboards();
       renderAdminPaineis();
 
@@ -1222,7 +1285,7 @@
     }
 
     btn.disabled = false;
-    btn.innerHTML = '🚀 Criar Painel';
+    btn.innerHTML = _npMode === 'editar' ? '💾 Salvar Alterações' : '🚀 Criar Painel';
   }
 
   document.addEventListener('DOMContentLoaded', () => {
